@@ -18,6 +18,12 @@ function App() {
       .catch(error => console.error('Error fetching config:', error));
   }, []);
 
+  const handleRefresh = (e) => {
+    e.preventDefault();
+    axios.post('/api/refresh', {  })
+    .catch(error => console.error('Error updating config:', error));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     axios.post('/api/config', {
@@ -45,7 +51,23 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Election Configuration</h1>
+      <form>
+        <button onClick={(e) => handleRefresh(e)}>Refresh</button>
+      </form>
+
+      <h2>Configured Elections</h2>
+      <ul>
+        {urlConfig.map((entry, index) => (
+          <li key={index}>
+            <strong>Name:</strong> {entry.name} <br />
+            <button onClick={() => handleDelete(entry.url)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+
+      <br />
+
+      <h2>Configure New Google Sheet</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>
@@ -91,18 +113,8 @@ function App() {
             />
           </label>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit">Add</button>
       </form>
-
-      <h2>Configured Elections</h2>
-      <ul>
-        {urlConfig.map((entry, index) => (
-          <li key={index}>
-            <strong>Name:</strong> {entry.name} <br />
-            <button onClick={() => handleDelete(entry.url)}>Delete</button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

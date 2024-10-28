@@ -53,6 +53,11 @@ import Store from 'electron-store';  // Import electron-store
       }
     });
 
+    server.post('/api/refresh', (req, res) => {
+      poll();
+      res.status(200);
+    });
+
     server.delete('/api/config', (req, res) => {
       const { url } = req.body;
       urlConfig = urlConfig.filter(entry => entry.url !== url);
@@ -110,42 +115,45 @@ import Store from 'electron-store';  // Import electron-store
       }
     }
 
-    async function startPolling() {
+    async function poll() {
       if (urlConfig.length === 0) return;
 
       function removeSpecialChars(value) {
         return value.replaceAll("/", "-").replaceAll("\\", "-").replaceAll(",", "-").replaceAll(".", "")
       }
-      
-      async function poll() {
-        for (const entry of urlConfig) {
-          const { url, key } = entry;
-          try {
-            console.log(`Polling data from ${url}`);
-            const contests = await fetchAndParseData(url, key);
-            console.log(`Parsed data`);
 
-            if (contests) {
-              await fs.mkdir(path.join(userDocumentsPath, 'GSheetsElectionXMLFiles'), { recursive: true });
+      for (const entry of urlConfig) {
+        const { url, key } = entry;
+        try {
+          console.log(`Polling data from ${url}`);
+          const contests = await fetchAndParseData(url, key);
+          console.log(`Parsed data`);
 
-              for (const contest of contests) {
-                const builder = new xml2js.Builder({ headless: true });
-                const simplifiedXmlContent = builder.buildObject({ Contest: contest });
+          if (contests) {
+            await fs.mkdir(path.join(userDocumentsPath, 'GSheetsElectionXMLFiles'), { recursive: true });
 
-                const contestFileName = `${removeSpecialChars(entry.name)}-${removeSpecialChars(contest.FileName)}.xml`;
-                const contestFilePath = path.join(userDocumentsPath, 'GSheetsElectionXMLFiles', contestFileName);
+            for (const contest of contests) {
+              const builder = new xml2js.Builder({ headless: true });
+              const simplifiedXmlContent = builder.buildObject({ Contest: contest });
 
-                await fs.writeFile(contestFilePath, simplifiedXmlContent);
+              const contestFileName = `${removeSpecialChars(entry.name)}-${removeSpecialChars(contest.FileName)}.xml`;
+              const contestFilePath = path.join(userDocumentsPath, 'GSheetsElectionXMLFiles', contestFileName);
 
-                console.log(`Contest ${contest.FileName} written to ${contestFilePath}`);
-              }
+              await fs.writeFile(contestFilePath, simplifiedXmlContent);
+
+              console.log(`Contest ${contest.FileName} written to ${contestFilePath}`);
             }
-          } catch (error) {
-            console.error(`Error polling data from ${url}:`, error);
           }
+        } catch (error) {
+          console.error(`Error polling data from ${url}:`, error);
         }
-        setTimeout(poll, pollInterval);
       }
+    }
+
+    async function startPolling() {
+      if (urlConfig.length === 0) return;
+
+      setTimeout(poll, pollInterval);
 
       poll().catch(error => {
         console.error('Polling error:', error);
@@ -160,8 +168,8 @@ import Store from 'electron-store';  // Import electron-store
       });
 
       const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 600,
+        height: 700,
         webPreferences: {
           preload: path.join(__dirname, 'preload.js'),
           contextIsolation: true,
