@@ -34,16 +34,48 @@ import Store from 'electron-store';  // Import electron-store
       res.json({ urlConfig, pollInterval });
     });
 
-    server.post('/api/config', async (req, res) => {
-      const { url, name, key, pollInterval: newPollInterval } = req.body;
+    server.post('/api/setRefresh', async (req, res) => {
+      const { pollInterval: newPollInterval } = req.body;
       pollInterval = newPollInterval;
+
+      try {
+        store.set('pollInterval', pollInterval);
+
+        res.json({ message: 'Polling interval updated', urlConfig });
+        startPolling();
+      } catch (error) {
+        console.error('Error updating poll interval:', error);
+        res.status(500).json({ message: 'Failed to update poll interval' });
+      }
+    });
+
+    server.post('/api/refresh', (req, res) => {
+      poll();
+      res.status(200);
+    });
+
+    server.post('/api/setRefresh', async (req, res) => {
+      const { pollInterval: newPollInterval } = req.body;
+      pollInterval = newPollInterval;
+
+      try {
+        store.set('pollInterval', pollInterval);
+        startPolling();
+        res.status(200);
+      } catch (error) {
+        console.error('Error updating poll interval:', error);
+        res.status(500).json({ message: 'Failed to update poll interval' });
+      }
+    });
+
+    server.post('/api/config', async (req, res) => {
+      const { url, name, key } = req.body;
 
       try {
         urlConfig = [...urlConfig, { url, name, key}];
 
         // Persist updated configuration
         store.set('urlConfig', urlConfig);
-        store.set('pollInterval', pollInterval);
 
         res.json({ message: 'Configuration updated', urlConfig });
         startPolling();
@@ -51,11 +83,6 @@ import Store from 'electron-store';  // Import electron-store
         console.error('Error updating config:', error);
         res.status(500).json({ message: 'Failed to update configuration' });
       }
-    });
-
-    server.post('/api/refresh', (req, res) => {
-      poll();
-      res.status(200);
     });
 
     server.delete('/api/config', (req, res) => {
@@ -121,7 +148,7 @@ import Store from 'electron-store';  // Import electron-store
       function removeSpecialChars(value) {
         return value.replaceAll("/", "-").replaceAll("\\", "-").replaceAll(",", "-").replaceAll(".", "")
       }
-
+      
       for (const entry of urlConfig) {
         const { url, key } = entry;
         try {
@@ -148,6 +175,7 @@ import Store from 'electron-store';  // Import electron-store
           console.error(`Error polling data from ${url}:`, error);
         }
       }
+      setTimeout(poll, pollInterval);
     }
 
     async function startPolling() {

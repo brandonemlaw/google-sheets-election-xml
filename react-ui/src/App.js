@@ -41,6 +41,18 @@ function App() {
     .catch(error => console.error('Error updating config:', error));
   };
 
+  const handleSetRefresh = (e) => {
+    e.preventDefault();
+    axios.post('/api/setRefresh', {
+      pollInterval: pollInterval * 1000
+    })
+    .then(response => {
+      setUrlConfig(response.data.urlConfig);
+      setNewUrl('');
+    })
+    .catch(error => console.error('Error updating config:', error));
+  };
+
   const handleDelete = (url) => {
     axios.delete('/api/config', { data: { url } })
       .then(response => {
@@ -55,7 +67,7 @@ function App() {
         <button onClick={(e) => handleRefresh(e)}>Refresh</button>
       </form>
 
-      <h2>Configured Elections</h2>
+      <h3>Configured Elections</h3>
       <ul>
         {urlConfig.map((entry, index) => (
           <li key={index}>
@@ -67,7 +79,7 @@ function App() {
 
       <br />
 
-      <h2>Configure New Google Sheet</h2>
+      <h3>Configure New Google Sheet</h3>
       <form onSubmit={handleSubmit}>
         <div>
           <label>
@@ -102,6 +114,11 @@ function App() {
             />
           </label>
         </div>
+        <button type="submit">Add</button>
+      </form>
+
+      <h3>Change Refresh Time</h3>
+      <form onSubmit={handleSetRefresh}>
         <div>
           <label>
             Refresh Time (seconds):
@@ -112,8 +129,8 @@ function App() {
               required
             />
           </label>
+          <button type="submit">Save</button>
         </div>
-        <button type="submit">Add</button>
       </form>
     </div>
   );
