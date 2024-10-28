@@ -1,6 +1,6 @@
 {
   "name": "google-sheets-election-xml-converter",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "type": "module",
   "main": "main.js",
