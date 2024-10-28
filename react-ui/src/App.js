@@ -6,6 +6,8 @@ function App() {
   const [urlConfig, setUrlConfig] = useState([]);
   const [pollInterval, setPollInterval] = useState(60);
   const [newUrl, setNewUrl] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newKey, setNewKey] = useState('');
 
   useEffect(() => {
     axios.get('/api/config')
@@ -20,11 +22,15 @@ function App() {
     e.preventDefault();
     axios.post('/api/config', {
       url: newUrl,
+      name: newName,
+      key: newKey,
       pollInterval: pollInterval * 1000
     })
     .then(response => {
       setUrlConfig(response.data.urlConfig);
       setNewUrl('');
+      setNewName('');
+      setNewKey('');
     })
     .catch(error => console.error('Error updating config:', error));
   };
@@ -54,6 +60,28 @@ function App() {
         </div>
         <div>
           <label>
+            Name:
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              required
+            />
+          </label>
+        </div>
+        <div>
+          <label>
+            Google API Key:
+            <input
+              type="text"
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+              required
+            />
+          </label>
+        </div>
+        <div>
+          <label>
             Refresh Time (seconds):
             <input
               type="number"
@@ -70,9 +98,7 @@ function App() {
       <ul>
         {urlConfig.map((entry, index) => (
           <li key={index}>
-            <strong>Name:</strong> {entry.electionName} <br />
-            <strong>Date:</strong> {entry.electionDate} <br />
-            <strong>Region:</strong> {entry.region} <br />
+            <strong>Name:</strong> {entry.name} <br />
             <button onClick={() => handleDelete(entry.url)}>Delete</button>
           </li>
         ))}

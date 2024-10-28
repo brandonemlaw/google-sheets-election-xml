@@ -1,6 +1,6 @@
 {
   "short_name": "Election XML",
-  "name": "Clarity Election XML Converter",
+  "name": "Google sheets Election XML Converter",
   "icons": [
     {
       "src": "favicon.ico",
