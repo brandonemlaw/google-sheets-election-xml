@@ -17,7 +17,7 @@ import Store from 'electron-store';  // Import electron-store
     const userDocumentsPath = app.getPath('documents');
 
     const server = express();
-    const PORT = 3000;
+    const PORT = 3005;
 
     const store = new Store();  // Create a new store instance
 
